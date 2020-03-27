@@ -29,6 +29,11 @@ RUN pecl install mcrypt-1.0.3 \
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Add User
-RUN useradd -ms /bin/bash xamelion
+# Add Sudo and add user
+RUN apt-get install sudo
+RUN adduser --disabled-password --gecos '' xamelion
+RUN adduser xamelion sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
 USER xamelion
+
