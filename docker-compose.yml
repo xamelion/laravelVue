@@ -1,0 +1,42 @@
+version: '2'
+services:
+
+  # The Application Code
+  application:
+    build:
+      context: ./
+      dockerfile: application.dockerfile
+    working_dir: /var/www
+    volumes:
+      - ./application/:/var/www
+    environment:
+      - "DB_PORT=3306"
+      - "host=localhost"
+
+  # The Web Server Nginx
+  web:
+    build:
+      context: ./
+      dockerfile: webserver.dockerfile
+    working_dir: /var/www
+    volumes_from:
+      - application
+    links:
+      - application
+    ports:
+      - 80:80
+
+  # The Database Mysql
+  database:
+    image: mariadb
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - "MYSQL_DATABASE=laravel"
+      - "MYSQL_USER=laravel"
+      - "MYSQL_PASSWORD=laravel"
+      - "MYSQL_ROOT_PASSWORD=secret"
+    ports:
+      - "3306:3306"
+volumes:
+  db:
