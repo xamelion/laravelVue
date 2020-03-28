@@ -5,9 +5,33 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
-require('./bootstrap');
+import './bootstrap';
+import Vue from 'vue';
+import Vuetify from 'vuetify';
+import colors from 'vuetify/lib/util/colors'
 
-window.Vue = require('vue');
+/**
+ * Load Components
+ */
+import AppComponent from './components/AppComponent.vue';
+
+const vuetify = new Vuetify()
+
+Vue.use(Vuetify, {
+    theme: {
+        themes: {
+            light: {
+                primary: colors.purple,
+                secondary: colors.grey.darken1,
+                accent: colors.shades.black,
+                error: colors.red.accent3,
+            },
+            dark: {
+                primary: colors.blue.lighten3,
+            },
+        },
+    },
+});
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -15,8 +39,9 @@ window.Vue = require('vue');
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
-Vue.component('example-component', require('./components/ExampleComponent.vue'));
+Vue.component('app', AppComponent);
 
 const app = new Vue({
-    el: '#app'
+    el: '#app',
+    vuetify: vuetify
 });
