@@ -1,13 +1,13 @@
 <template>
     <v-card flat>
         <v-toolbar color="primary" dark extended flat>
-            <v-app-bar-nav-icon></v-app-bar-nav-icon>
         </v-toolbar>
 
         <v-card class="mx-auto" max-width="700" style="margin-top: -64px;">
             <v-toolbar color="primary" dark flat height="auto">
                 <v-container class="px-0">
                     <v-row no-gutters>
+                        
                         <v-col cols="12" md="4">
                             <v-select
                                 v-model="filter.category"
@@ -16,7 +16,9 @@
                                 color="white"
                                 hide-details
                                 label="Category"
+                                :clearable="true"
                                 outlined
+                                @change="getFeeds(true)"
                                 prepend-inner-icon="mdi-view-dashboard"
                             />
                         </v-col>
@@ -26,6 +28,7 @@
                                 v-model="filter.search"
                                 append-icon="mdi-magnify"
                                 clearable
+                                @click:append="getFeeds(true)"
                                 color="white"
                                 hide-details
                                 label="Search..."
@@ -41,11 +44,11 @@
             <v-divider></v-divider>
 
             <v-container fluid>
-                <v-row dense>
-                    <v-col :if="!loadFeed" v-for="feed in feedsData.feeds" :key="feed.id" cols="6">
+                <v-row dense v-if="!loadFeed && feedsData.feeds.length !== 0" >
+                    <v-col v-for="feed in feedsData.feeds" :key="feed.id" cols="6">
                         <v-card>
                             <v-img
-                                :if="feed.media"
+                                v-if="feed.media"
                                 :src="feed.media"
                                 class="white--text align-end"
                                 gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
@@ -75,13 +78,19 @@
                         </v-card>
                     </v-col>
                 </v-row>
+                <v-row dense v-if="!loadFeed && feedsData.feeds.length === 0">
+                    <v-col >
+                        <v-alert type="warning">
+                        Feeds not found.
+                        </v-alert>
+                    </v-col>
+                </v-row>
             </v-container>
-
-            <v-container :if="feedsData.total > 10">
+            <v-container v-if="feedsData.total > 10 && feedsData.feeds.length !== 0">
                 <v-pagination
                     v-model="page"
                     :total-visible=6
-                    :length=feedsData.total/10
+                    :length=Math.ceil(feedsData.total/10)
                     @input="getFeeds()"
                 ></v-pagination>
             </v-container>
@@ -124,17 +133,24 @@ export default {
         }
     },
     methods: {
-        getFeeds() {
+        getFeeds(clear = false) {
             const app = this
             app.feedsData = {
                 feeds: [],
                 total: 0,
             };
             app.loadFeed = true;
-            const skip = ((app.page-1) * 10)
+
+            if (clear) {
+                app.page = 1;
+            }
+
+            const skip = ((app.page-1) * 10);
+            const category = app.filter.category;
+            const search = app.filter.search;
 
             axios
-                .get('/api/v1/feeds?skip='+skip)
+                .get('/api/v1/feeds', {params: {skip, category, search}})
                 .then(function(resp) {
                     app.feedsData = resp.data
                     app.loadFeed = false

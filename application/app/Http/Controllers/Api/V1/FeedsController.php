@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Input;
 
 class FeedsController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      *
@@ -21,7 +20,36 @@ class FeedsController extends Controller
         $skip = Input::get('skip');
 
         $feedLimit = DB::table('feeds')
-            ->select(array(DB::raw('SQL_CALC_FOUND_ROWS *, categories.title as categoryTitle , feeds.title as title')))
+            ->select(array(DB::raw('SQL_CALC_FOUND_ROWS *, categories.title as categoryTitle , feeds.title as title, feeds.id as id')))
+            ->where(function($query){
+                $category_id = (int) Input::get('category');
+                $category_id == 0 ? $query : $query->where('category_id','=',$category_id);
+            })
+            ->where(function($query){
+                $q = (string) Input::get('search');
+
+                $reservedSymbols = ['-', '+', '<', '>', '@', '(', ')', '~'];
+                $term = str_replace($reservedSymbols, '', $q);
+
+                $words = explode(' ', $term);
+
+                foreach ($words as $key => $word) {
+                    /*
+                     * applying + operator (required word) only big words
+                     * because smaller ones are not indexed by mysql
+                     */
+                    if (strlen($word) >= 3) {
+                        $words[$key] = '*' . $word . '*';
+                    }
+                }
+
+                $searchTerm = implode(' ', $words);
+
+                !isset($q) || $q == '' ? $query : $query->whereRaw(
+                    "MATCH(feeds.title, feeds.content) AGAINST(? IN BOOLEAN MODE)",
+                    array($searchTerm)
+                );
+            })
             ->leftJoin('categories', 'categories.id', '=', 'feeds.category_id')
             ->skip($skip ?? 0)
             ->take(10)

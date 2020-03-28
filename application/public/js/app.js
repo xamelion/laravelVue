@@ -84054,6 +84054,15 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
@@ -84086,15 +84095,24 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     },
     methods: {
         getFeeds: function getFeeds() {
+            var clear = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
             var app = this;
             app.feedsData = {
                 feeds: [],
                 total: 0
             };
             app.loadFeed = true;
-            var skip = (app.page - 1) * 10;
 
-            axios.get('/api/v1/feeds?skip=' + skip).then(function (resp) {
+            if (clear) {
+                app.page = 1;
+            }
+
+            var skip = (app.page - 1) * 10;
+            var category = app.filter.category;
+            var search = app.filter.search;
+
+            axios.get('/api/v1/feeds', { params: { skip: skip, category: category, search: search } }).then(function (resp) {
                 app.feedsData = resp.data;
                 app.loadFeed = false;
             }).catch(function (resp) {
@@ -84133,12 +84151,9 @@ var render = function() {
     "v-card",
     { attrs: { flat: "" } },
     [
-      _c(
-        "v-toolbar",
-        { attrs: { color: "primary", dark: "", extended: "", flat: "" } },
-        [_c("v-app-bar-nav-icon")],
-        1
-      ),
+      _c("v-toolbar", {
+        attrs: { color: "primary", dark: "", extended: "", flat: "" }
+      }),
       _vm._v(" "),
       _c(
         "v-card",
@@ -84174,8 +84189,14 @@ var render = function() {
                               color: "white",
                               "hide-details": "",
                               label: "Category",
+                              clearable: true,
                               outlined: "",
                               "prepend-inner-icon": "mdi-view-dashboard"
+                            },
+                            on: {
+                              change: function($event) {
+                                return _vm.getFeeds(true)
+                              }
                             },
                             model: {
                               value: _vm.filter.category,
@@ -84204,6 +84225,11 @@ var render = function() {
                               "single-line": "",
                               type: "search"
                             },
+                            on: {
+                              "click:append": function($event) {
+                                return _vm.getFeeds(true)
+                              }
+                            },
                             model: {
                               value: _vm.filter.search,
                               callback: function($$v) {
@@ -84231,70 +84257,81 @@ var render = function() {
             "v-container",
             { attrs: { fluid: "" } },
             [
-              _c(
-                "v-row",
-                { attrs: { dense: "" } },
-                _vm._l(_vm.feedsData.feeds, function(feed) {
-                  return _c(
-                    "v-col",
-                    { key: feed.id, attrs: { if: !_vm.loadFeed, cols: "6" } },
-                    [
-                      _c(
-                        "v-card",
+              !_vm.loadFeed && _vm.feedsData.feeds.length !== 0
+                ? _c(
+                    "v-row",
+                    { attrs: { dense: "" } },
+                    _vm._l(_vm.feedsData.feeds, function(feed) {
+                      return _c(
+                        "v-col",
+                        { key: feed.id, attrs: { cols: "6" } },
                         [
                           _c(
-                            "v-img",
-                            {
-                              staticClass: "white--text align-end",
-                              attrs: {
-                                if: feed.media,
-                                src: feed.media,
-                                gradient:
-                                  "to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)",
-                                height: "200px"
-                              }
-                            },
+                            "v-card",
                             [
-                              _c("v-card-title", {
-                                domProps: { innerHTML: _vm._s(feed.title) }
-                              })
-                            ],
-                            1
-                          ),
-                          _vm._v(" "),
-                          _c(
-                            "v-card-actions",
-                            [
+                              feed.media
+                                ? _c(
+                                    "v-img",
+                                    {
+                                      staticClass: "white--text align-end",
+                                      attrs: {
+                                        src: feed.media,
+                                        gradient:
+                                          "to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)",
+                                        height: "200px"
+                                      }
+                                    },
+                                    [
+                                      _c("v-card-title", {
+                                        domProps: {
+                                          innerHTML: _vm._s(feed.title)
+                                        }
+                                      })
+                                    ],
+                                    1
+                                  )
+                                : _vm._e(),
+                              _vm._v(" "),
                               _c(
-                                "v-list-item-content",
+                                "v-card-actions",
                                 [
-                                  _c("v-list-item-title", [
-                                    _vm._v(_vm._s(feed.categoryTitle))
-                                  ])
+                                  _c(
+                                    "v-list-item-content",
+                                    [
+                                      _c("v-list-item-title", [
+                                        _vm._v(_vm._s(feed.categoryTitle))
+                                      ])
+                                    ],
+                                    1
+                                  ),
+                                  _vm._v(" "),
+                                  _c("v-spacer"),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-btn",
+                                    { attrs: { icon: "" } },
+                                    [_c("v-icon", [_vm._v("mdi-heart")])],
+                                    1
+                                  ),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-btn",
+                                    { attrs: { icon: "" } },
+                                    [_c("v-icon", [_vm._v("mdi-bookmark")])],
+                                    1
+                                  ),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-btn",
+                                    { attrs: { icon: "" } },
+                                    [
+                                      _c("v-icon", [
+                                        _vm._v("mdi-share-variant")
+                                      ])
+                                    ],
+                                    1
+                                  )
                                 ],
-                                1
-                              ),
-                              _vm._v(" "),
-                              _c("v-spacer"),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                { attrs: { icon: "" } },
-                                [_c("v-icon", [_vm._v("mdi-heart")])],
-                                1
-                              ),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                { attrs: { icon: "" } },
-                                [_c("v-icon", [_vm._v("mdi-bookmark")])],
-                                1
-                              ),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                { attrs: { icon: "" } },
-                                [_c("v-icon", [_vm._v("mdi-share-variant")])],
                                 1
                               )
                             ],
@@ -84303,38 +84340,61 @@ var render = function() {
                         ],
                         1
                       )
+                    }),
+                    1
+                  )
+                : _vm._e(),
+              _vm._v(" "),
+              !_vm.loadFeed && _vm.feedsData.feeds.length === 0
+                ? _c(
+                    "v-row",
+                    { attrs: { dense: "" } },
+                    [
+                      _c(
+                        "v-col",
+                        [
+                          _c("v-alert", { attrs: { type: "warning" } }, [
+                            _vm._v(
+                              "\n                    Feeds not found.\n                    "
+                            )
+                          ])
+                        ],
+                        1
+                      )
                     ],
                     1
                   )
-                }),
-                1
-              )
+                : _vm._e()
             ],
             1
           ),
           _vm._v(" "),
-          _c(
-            "v-container",
-            { attrs: { if: _vm.feedsData.total > 10 } },
-            [
-              _c("v-pagination", {
-                attrs: { "total-visible": 6, length: _vm.feedsData.total / 10 },
-                on: {
-                  input: function($event) {
-                    return _vm.getFeeds()
-                  }
-                },
-                model: {
-                  value: _vm.page,
-                  callback: function($$v) {
-                    _vm.page = $$v
-                  },
-                  expression: "page"
-                }
-              })
-            ],
-            1
-          )
+          _vm.feedsData.total > 10 && _vm.feedsData.feeds.length !== 0
+            ? _c(
+                "v-container",
+                [
+                  _c("v-pagination", {
+                    attrs: {
+                      "total-visible": 6,
+                      length: Math.ceil(_vm.feedsData.total / 10)
+                    },
+                    on: {
+                      input: function($event) {
+                        return _vm.getFeeds()
+                      }
+                    },
+                    model: {
+                      value: _vm.page,
+                      callback: function($$v) {
+                        _vm.page = $$v
+                      },
+                      expression: "page"
+                    }
+                  })
+                ],
+                1
+              )
+            : _vm._e()
         ],
         1
       )
